@@ -12,8 +12,9 @@ export interface Movimiento {
   id: string;
   fecha: string;
   motivo: string;
+  description?: string;
   categoriaId: number;
-  medio: 'efectivo' | 'tarjeta';
+  medio: 'efectivo' | 'tarjeta' | 'mercado pago';
   numCuota: number;
   totalCuotas: number;
   monto: number;
@@ -27,8 +28,9 @@ interface SaveMovementInput {
   categoriaId: number;
   categoria: string;
   motivo: string;
+  description?: string;
   fecha: string;
-  medio: 'efectivo' | 'tarjeta';
+  medio: 'efectivo' | 'tarjeta' | 'mercado pago';
   moneda: 'ARS' | 'USD';
   totalCuotas: number;
 }
@@ -51,7 +53,9 @@ Reglas:
 - Para reportes en WhatsApp, usá emojis para que sea más legible
 - La fecha de hoy es ${new Date().toISOString().slice(0, 10)}
 - Si no queda claro si es ingreso o egreso, preguntá
-- Los montos pueden venir con o sin signo de pesos, con puntos o comas`;
+- Los montos pueden venir con o sin signo de pesos, con puntos o comas
+- En motivo poné el lugar o concepto (ej: "verdulería", "shopping", "farmacia")
+- En description poné el detalle de lo comprado solo si el usuario lo menciona (ej: "2 zapallos, 1 pantalón"). Si no hay detalle, omitir`;
 
 const tools: Anthropic.Tool[] = [
   {
@@ -64,9 +68,10 @@ const tools: Anthropic.Tool[] = [
         monto: { type: 'number', description: 'Monto numérico sin símbolo de moneda' },
         categoriaId: { type: 'number', description: 'ID de la categoría (1-8)' },
         categoria: { type: 'string', description: 'Nombre de la categoría' },
-        motivo: { type: 'string', description: 'Descripción breve del movimiento' },
+        motivo: { type: 'string', description: 'Lugar o concepto del gasto (ej: "verdulería", "shopping", "YPF"). Siempre requerido.' },
+        description: { type: 'string', description: 'Detalle opcional de lo comprado (ej: "2 zapallos, 2 batatas"). Solo incluir si el usuario lo menciona.' },
         fecha: { type: 'string', description: 'Fecha en formato YYYY-MM-DD' },
-        medio: { type: 'string', enum: ['efectivo', 'tarjeta'], description: 'Medio de pago. Si no se menciona, inferir: tarjeta por defecto' },
+        medio: { type: 'string', enum: ['efectivo', 'tarjeta', 'mercado pago'], description: 'Medio de pago. Si no se menciona, usar "mercado pago" por defecto' },
         moneda: { type: 'string', enum: ['ARS', 'USD'], description: 'Moneda. ARS por defecto salvo que se mencione dólares' },
         totalCuotas: { type: 'number', description: 'Total de cuotas. 0 si es pago único, o el número de cuotas si se menciona' },
       },
@@ -88,7 +93,7 @@ const tools: Anthropic.Tool[] = [
 ];
 
 function saveMovement(input: SaveMovementInput): object {
-  const { tipo, monto, categoriaId, categoria, motivo, fecha, medio, moneda, totalCuotas } = input;
+  const { tipo, monto, categoriaId, categoria, motivo, description, fecha, medio, moneda, totalCuotas } = input;
   const [year, month] = fecha.split('-');
   const monthStr = `${year}-${month}`;
   const prefix = tipo === 'ingreso' ? 'ingresos' : 'gastos';
@@ -99,10 +104,12 @@ function saveMovement(input: SaveMovementInput): object {
     data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   }
 
-  data.push({ id: nanoid(), fecha, motivo, categoriaId, medio, numCuota: 1, totalCuotas, monto, tipo, moneda });
+  const entry: Movimiento = { id: nanoid(), fecha, motivo, categoriaId, medio, numCuota: 1, totalCuotas, monto, tipo, moneda };
+  if (description) entry.description = description;
+  data.push(entry);
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 
-  return { ok: true, movimiento: { tipo, monto, categoria, motivo, fecha, medio, moneda, totalCuotas } };
+  return { ok: true, movimiento: { tipo, monto, categoria, motivo, description, fecha, medio, moneda, totalCuotas } };
 }
 
 function readMovements({ tipo, mes }: ReadMovementsInput): Movimiento[] {

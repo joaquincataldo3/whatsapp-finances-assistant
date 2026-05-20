@@ -129,6 +129,19 @@ ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxxxxxxxxxx
 4. Set the webhook in Twilio Console > WhatsApp Sandbox Settings > "When a message comes in": `https://YOUR-URL/webhook/whatsapp` (POST)
 5. Send a message from WhatsApp to the sandbox number
 
+## Commit convention
+
+```
+add: new feature or file
+fix: bug fix
+improve: enhancement to existing functionality
+```
+
+Examples:
+- `add: listar_meses_disponibles tool to agent`
+- `fix: MY_WHATSAPP_NUMBER not loading from .env`
+- `improve: split motivo into motivo + description fields`
+
 ## Architecture decisions
 
 - **No database:** JSON files in `/data` are sufficient for single-user personal use
