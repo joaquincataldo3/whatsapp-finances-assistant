@@ -5,9 +5,7 @@
   "main": "server.ts",
   "scripts": {
     "start": "tsx server.ts",
-    "start:all": "concurrently -n server,tunnel -c blue,yellow \"tsx server.ts\" \"cloudflared tunnel --url http://localhost:3000\"",
     "dev": "tsx watch server.ts",
-    "dev:all": "concurrently -n server,tunnel -c blue,yellow \"tsx watch server.ts\" \"cloudflared tunnel --url http://localhost:3000\"",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

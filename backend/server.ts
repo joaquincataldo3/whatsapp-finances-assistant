@@ -6,6 +6,7 @@ import path from 'path';
 import { CATEGORIES } from './utils.js';
 import { whatsappRouter } from './whatsapp.js';
 import { startScheduler } from './scheduler.js';
+import { startTunnel } from './tunnel.js';
 import type { Movimiento } from './agent.js';
 
 const app = express();
@@ -93,4 +94,5 @@ app.use('/webhook', whatsappRouter);
 
 rolloverToNewMonth();
 startScheduler();
+if (process.env.TUNNEL === 'true') startTunnel();
 app.listen(3000, () => console.log('✅ Backend listo en http://localhost:3000'));
