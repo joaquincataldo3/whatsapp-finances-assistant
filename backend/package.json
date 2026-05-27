@@ -5,7 +5,9 @@
   "main": "server.ts",
   "scripts": {
     "start": "tsx server.ts",
+    "start:all": "concurrently -n server,tunnel -c blue,yellow \"tsx server.ts\" \"cloudflared tunnel --url http://localhost:3000\"",
     "dev": "tsx watch server.ts",
+    "dev:all": "concurrently -n server,tunnel -c blue,yellow \"tsx watch server.ts\" \"cloudflared tunnel --url http://localhost:3000\"",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -19,6 +21,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.1.0",
     "nanoid": "^5.1.11",
+    "node-cron": "^4.2.1",
     "twilio": "^6.0.2",
     "zod": "^4.1.12"
   },
@@ -26,6 +29,8 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.9.1",
+    "@types/node-cron": "^3.0.11",
+    "concurrently": "^9.2.1",
     "nodemon": "^3.1.10",
     "tsx": "^4.22.3",
     "typescript": "^6.0.3"

@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { CATEGORIES } from './utils.js';
 import { whatsappRouter } from './whatsapp.js';
+import { startScheduler } from './scheduler.js';
 import type { Movimiento } from './agent.js';
 
 const app = express();
@@ -66,7 +67,7 @@ app.post('/api/:tipo', (req: Request, res: Response) => {
   const tipo = mov.tipo === 'ingreso' ? 'ingreso' : 'egreso';
   const [year, month] = mov.fecha.split('-');
   const data = readMonthFile(`${year}-${month}`, tipo);
-  data.push({ id: Date.now().toString(), ...mov });
+  data.push({ ...mov, id: Date.now().toString() });
   writeMonthFile(`${year}-${month}`, tipo, data);
   res.json({ ok: true });
 });
@@ -91,4 +92,5 @@ app.delete('/api/:tipo/:id', (req: Request, res: Response) => {
 app.use('/webhook', whatsappRouter);
 
 rolloverToNewMonth();
+startScheduler();
 app.listen(3000, () => console.log('✅ Backend listo en http://localhost:3000'));
